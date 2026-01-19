@@ -9,12 +9,7 @@ const execAsync = promisify(exec);
  * Execute a shell command and return the output
  */
 export async function executeCommand(command: string): Promise<{ stdout: string; stderr: string }> {
-  try {
-    const result = await execAsync(command, { timeout: 300000 }); // 5 minute timeout
-    return result;
-  } catch (error) {
-    throw error;
-  }
+  return execAsync(command, { timeout: 300000 }); // 5 minute timeout
 }
 
 /**

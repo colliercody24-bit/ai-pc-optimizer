@@ -312,7 +312,8 @@ export class FileSystemCleaner {
         'complete'
       `;
       
-      await executeCommand(`powershell -Command "${psCommand.replace(/\n/g, ' ')}"`, );
+      await executeCommand(`powershell -Command "${psCommand.replace(/\n/g, ' ')}"`);
+
       
       result.success = true;
       
