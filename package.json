@@ -1,0 +1,39 @@
+{
+  "name": "ai-pc-optimizer",
+  "version": "1.0.0",
+  "description": "AI-powered PC optimization system with automated updates, driver management, and performance monitoring",
+  "main": "dist/main.js",
+  "bin": {
+    "ai-pc-optimizer": "dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts",
+    "test": "jest",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "pc-optimizer",
+    "windows",
+    "performance",
+    "driver-update",
+    "cleanup",
+    "ai",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "commander": "^14.0.2",
+    "dotenv": "^17.2.3",
+    "winston": "^3.19.0"
+  }
+}
