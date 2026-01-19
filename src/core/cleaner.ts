@@ -173,7 +173,7 @@ export class FileSystemCleaner {
   async getCleanupTargets(): Promise<(CleanupTarget & { size: number; fileCount: number })[]> {
     logger.info('Scanning cleanup targets...');
     
-    const results = [];
+    const results: (CleanupTarget & { size: number; fileCount: number })[] = [];
     
     for (const target of this.tempPaths) {
       try {

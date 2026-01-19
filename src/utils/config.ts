@@ -11,8 +11,12 @@ export interface AppConfig {
   scanIntervalMinutes: number;
   cleanupPaths: string[];
   tempFileMaxAgeDays: number;
+  // AI Configuration
   aiProvider: string;
   aiApiKey: string;
+  ollamaUrl: string;
+  ollamaModel: string;
+  geminiModel: string;
 }
 
 const config: AppConfig = {
@@ -24,8 +28,12 @@ const config: AppConfig = {
   scanIntervalMinutes: parseInt(process.env.SCAN_INTERVAL_MINUTES || '60', 10),
   cleanupPaths: (process.env.CLEANUP_PATHS || '').split(',').filter(Boolean),
   tempFileMaxAgeDays: parseInt(process.env.TEMP_FILE_MAX_AGE_DAYS || '7', 10),
-  aiProvider: process.env.AI_PROVIDER || 'openai',
+  // AI Configuration
+  aiProvider: process.env.AI_PROVIDER || 'rule-based',
   aiApiKey: process.env.AI_API_KEY || '',
+  ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
+  ollamaModel: process.env.OLLAMA_MODEL || 'llama2',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-pro',
 };
 
 export default config;

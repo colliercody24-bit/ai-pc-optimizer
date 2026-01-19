@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
-import { aiOptimizationAgent } from '../ai';
+import { aiOptimizationAgent, aiService } from '../ai';
 import { 
   systemUpdater, 
   driverManager, 
@@ -180,4 +180,46 @@ ipcMain.handle('set-power-plan', async (_event, plan: 'balanced' | 'high-perform
 
 ipcMain.handle('format-bytes', (_event, bytes: number) => {
   return formatBytes(bytes);
+});
+
+// AI Provider IPC Handlers
+
+ipcMain.handle('ai-get-provider-info', async () => {
+  try {
+    const info = aiService.getProviderInfo();
+    const providerType = aiService.getProviderType();
+    const isAvailable = await aiService.isAvailable();
+    return { success: true, data: { ...info, providerType, isAvailable } };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+});
+
+ipcMain.handle('ai-set-provider', async (_event, provider: string, options?: { apiKey?: string }) => {
+  try {
+    aiService.setProvider(provider as 'ollama' | 'gemini' | 'rule-based', options);
+    const isAvailable = await aiService.isAvailable();
+    return { success: true, data: { provider, isAvailable } };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+});
+
+ipcMain.handle('ai-get-models', async () => {
+  try {
+    const models = await aiService.getAvailableModels();
+    return { success: true, data: models };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+});
+
+ipcMain.handle('ai-chat', async (_event, message: string) => {
+  try {
+    const metrics = await performanceOptimizer.getSystemMetrics();
+    const response = await aiService.chat(message, { metrics });
+    return { success: response.success, data: response };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
 });

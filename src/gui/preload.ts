@@ -26,6 +26,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   optimizePerformance: () => ipcRenderer.invoke('optimize-performance'),
   setPowerPlan: (plan: string) => ipcRenderer.invoke('set-power-plan', plan),
   
+  // AI Provider
+  aiGetProviderInfo: () => ipcRenderer.invoke('ai-get-provider-info'),
+  aiSetProvider: (provider: string, options?: { apiKey?: string }) => 
+    ipcRenderer.invoke('ai-set-provider', provider, options),
+  aiGetModels: () => ipcRenderer.invoke('ai-get-models'),
+  aiChat: (message: string) => ipcRenderer.invoke('ai-chat', message),
+  
   // Utils
   formatBytes: (bytes: number) => ipcRenderer.invoke('format-bytes', bytes),
 });

@@ -10,6 +10,49 @@ AI-powered PC optimization system with automated updates, driver management, and
 - 🧹 **File System Cleanup**: Clean temporary files, browser cache, and free up disk space
 - 🤖 **AI-Powered Analysis**: Intelligent system analysis with prioritized recommendations
 - 🖥️ **Modern GUI**: Beautiful Electron-based graphical interface
+- 🧠 **Multiple AI Providers**: Choose from Ollama (local/free), Google Gemini (cloud), or rule-based analysis
+
+## AI Providers
+
+The optimizer supports multiple AI backends for generating intelligent recommendations:
+
+### Rule-Based (Default)
+- No setup required, works out of the box
+- Uses predefined rules and thresholds
+- No API keys or external services needed
+
+### Ollama (Local AI - Free)
+Runs AI models locally on your machine. Completely free and private.
+
+```bash
+# 1. Install Ollama from https://ollama.ai
+# 2. Start the server
+ollama serve
+
+# 3. Pull a model
+ollama pull llama2
+
+# 4. Configure in .env
+AI_PROVIDER=ollama
+OLLAMA_MODEL=llama2
+```
+
+**Available models**: llama2, mistral, codellama, phi, neural-chat
+
+### Google Gemini (Cloud AI)
+Powerful cloud AI with a generous free tier.
+
+- **Free tier**: 15 requests/minute, 1 million tokens/month
+- **Get API key**: https://makersuite.google.com/app/apikey
+
+```bash
+# Configure in .env
+AI_PROVIDER=gemini
+AI_API_KEY=your_api_key_here
+GEMINI_MODEL=gemini-pro
+```
+
+**Pricing** (beyond free tier): See https://ai.google.dev/pricing
 
 ## Installation
 
