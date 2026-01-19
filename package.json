@@ -2,14 +2,17 @@
   "name": "ai-pc-optimizer",
   "version": "1.0.0",
   "description": "AI-powered PC optimization system with automated updates, driver management, and performance monitoring",
-  "main": "dist/main.js",
+  "main": "dist/gui/electron-main.js",
   "bin": {
     "ai-pc-optimizer": "dist/main.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-html",
+    "copy-html": "node scripts/copy-html.js",
     "start": "node dist/main.js",
+    "start:gui": "electron .",
     "dev": "ts-node src/main.ts",
+    "dev:gui": "npm run build && electron .",
     "test": "jest",
     "lint": "tsc --noEmit"
   },
@@ -20,7 +23,9 @@
     "driver-update",
     "cleanup",
     "ai",
-    "automation"
+    "automation",
+    "electron",
+    "gui"
   ],
   "author": "",
   "license": "MIT",
@@ -29,6 +34,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.0.9",
+    "electron": "^40.0.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {

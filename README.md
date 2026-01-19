@@ -9,6 +9,7 @@ AI-powered PC optimization system with automated updates, driver management, and
 - ⚡ **Performance Optimization**: Monitor system metrics and optimize CPU/GPU performance
 - 🧹 **File System Cleanup**: Clean temporary files, browser cache, and free up disk space
 - 🤖 **AI-Powered Analysis**: Intelligent system analysis with prioritized recommendations
+- 🖥️ **Modern GUI**: Beautiful Electron-based graphical interface
 
 ## Installation
 
@@ -22,23 +23,39 @@ npm install
 
 # Build the project
 npm run build
-
-# Run the optimizer
-npm start
 ```
 
 ## Usage
 
-### Quick System Status
+### Graphical Interface (GUI)
+
+Launch the modern desktop application:
 
 ```bash
-ai-pc-optimizer status
+npm run start:gui
 ```
 
-### Full System Analysis
+The GUI provides:
+- **Dashboard**: System health score, metrics, and AI recommendations at a glance
+- **Updates**: Check and install Windows updates with one click
+- **Drivers**: Scan and manage hardware drivers, view GPU information
+- **Performance**: Monitor processes, set power plans, optimize system
+- **Cleanup**: Scan and clean temporary files, empty recycle bin
+
+### Command Line Interface (CLI)
+
+For automation and scripting, use the CLI:
+
+#### Quick System Status
 
 ```bash
-ai-pc-optimizer analyze
+npm start status
+```
+
+#### Full System Analysis
+
+```bash
+npm start analyze
 ```
 
 Get a comprehensive analysis of your system including:
@@ -46,10 +63,10 @@ Get a comprehensive analysis of your system including:
 - Prioritized recommendations
 - Current system metrics (CPU, Memory, Disk, GPU)
 
-### AI-Powered Optimization
+#### AI-Powered Optimization
 
 ```bash
-ai-pc-optimizer optimize
+npm start optimize
 ```
 
 Automatically apply recommended optimizations including:
@@ -58,67 +75,67 @@ Automatically apply recommended optimizations including:
 - Memory optimization
 - Disk cleanup
 
-### Windows Updates
+#### Windows Updates
 
 ```bash
 # Check for updates
-ai-pc-optimizer updates --check
+npm start updates -- --check
 
 # Install updates
-ai-pc-optimizer updates --install
+npm start updates -- --install
 ```
 
-### Driver Management
+#### Driver Management
 
 ```bash
 # Scan all installed drivers
-ai-pc-optimizer drivers --scan
+npm start drivers -- --scan
 
 # Check for driver updates
-ai-pc-optimizer drivers --check
+npm start drivers -- --check
 
 # Install driver updates
-ai-pc-optimizer drivers --install
+npm start drivers -- --install
 
 # View GPU driver info
-ai-pc-optimizer drivers --gpu
+npm start drivers -- --gpu
 ```
 
-### Performance Optimization
+#### Performance Optimization
 
 ```bash
 # View system metrics
-ai-pc-optimizer performance --metrics
+npm start performance -- --metrics
 
 # View resource-hungry processes
-ai-pc-optimizer performance --processes
+npm start performance -- --processes
 
 # Run performance optimizations
-ai-pc-optimizer performance --optimize
+npm start performance -- --optimize
 
 # Set power plan
-ai-pc-optimizer performance --power high-performance
-ai-pc-optimizer performance --power balanced
-ai-pc-optimizer performance --power power-saver
+npm start performance -- --power high-performance
+npm start performance -- --power balanced
+npm start performance -- --power power-saver
 ```
 
-### Disk Cleanup
+#### Disk Cleanup
 
 ```bash
 # Scan cleanup opportunities
-ai-pc-optimizer cleanup --scan
+npm start cleanup -- --scan
 
 # Run full cleanup
-ai-pc-optimizer cleanup --clean
+npm start cleanup -- --clean
 
 # Clean browser cache only
-ai-pc-optimizer cleanup --browser
+npm start cleanup -- --browser
 
 # Empty recycle bin
-ai-pc-optimizer cleanup --recycle
+npm start cleanup -- --recycle
 
 # Run Windows Disk Cleanup
-ai-pc-optimizer cleanup --disk
+npm start cleanup -- --disk
 ```
 
 ## Configuration
@@ -160,6 +177,10 @@ ai-pc-optimizer/
 │   │   └── cleaner.ts          # File system cleanup
 │   ├── ai/                      # AI components
 │   │   └── optimization-agent.ts  # AI-powered analysis
+│   ├── gui/                     # Electron GUI
+│   │   ├── electron-main.ts    # Electron main process
+│   │   ├── preload.ts          # Preload script
+│   │   └── index.html          # GUI interface
 │   ├── utils/                   # Utilities
 │   │   ├── logger.ts           # Winston logger
 │   │   ├── config.ts           # Configuration
