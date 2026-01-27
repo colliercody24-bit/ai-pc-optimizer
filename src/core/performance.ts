@@ -1,4 +1,5 @@
 import { logger, executeCommand, isWindows, isAdmin } from '../utils';
+import * as si from 'systeminformation';
 
 export interface SystemMetrics {
   cpu: {
@@ -71,76 +72,50 @@ export class PerformanceOptimizer {
       },
     };
     
-    if (!isWindows()) {
-      // Linux/macOS metrics
-      try {
-        const { stdout: memInfo } = await executeCommand('free -b');
-        const memLines = memInfo.split('\n');
-        if (memLines.length > 1) {
-          const memParts = memLines[1].split(/\s+/);
-          metrics.memory.total = parseInt(memParts[1]) || 0;
-          metrics.memory.available = parseInt(memParts[6]) || 0;
-          metrics.memory.used = metrics.memory.total - metrics.memory.available;
-          metrics.memory.usagePercent = Math.round((metrics.memory.used / metrics.memory.total) * 100);
-        }
-        
-        const { stdout: cpuInfo } = await executeCommand('nproc');
-        metrics.cpu.cores = parseInt(cpuInfo.trim()) || 0;
-      } catch {
-        // Fallback values already set
-      }
-      
-      return metrics;
-    }
-    
     try {
-      // Windows metrics using PowerShell
-      const psCommand = `
-        $cpu = Get-WmiObject Win32_Processor | Select-Object -First 1
-        $memory = Get-WmiObject Win32_OperatingSystem
-        $gpu = Get-WmiObject Win32_VideoController | Select-Object -First 1
-        $disk = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='C:'"
-        $cpuLoad = (Get-WmiObject Win32_PerfFormattedData_PerfOS_Processor | 
-                   Where-Object { $_.Name -eq '_Total' }).PercentProcessorTime
-        
-        @{
-          cpu = @{
-            usage = [int]$cpuLoad
-            temperature = 0
-            cores = $cpu.NumberOfCores
-            speed = [math]::Round($cpu.CurrentClockSpeed / 1000, 2)
-            name = $cpu.Name
-          }
-          memory = @{
-            total = $memory.TotalVisibleMemorySize * 1024
-            available = $memory.FreePhysicalMemory * 1024
-            used = ($memory.TotalVisibleMemorySize - $memory.FreePhysicalMemory) * 1024
-            usagePercent = [math]::Round((($memory.TotalVisibleMemorySize - $memory.FreePhysicalMemory) / $memory.TotalVisibleMemorySize) * 100)
-          }
-          gpu = if ($gpu) {
-            @{
-              name = $gpu.Name
-              usage = 0
-              temperature = 0
-              memoryTotal = $gpu.AdapterRAM
-              memoryUsed = 0
-            }
-          } else { $null }
-          disk = @{
-            total = $disk.Size
-            free = $disk.FreeSpace
-            used = $disk.Size - $disk.FreeSpace
-            usagePercent = [math]::Round((($disk.Size - $disk.FreeSpace) / $disk.Size) * 100)
-          }
-        } | ConvertTo-Json -Compress -Depth 3
-      `;
+      // Get CPU information
+      const [cpuData, currentLoad, memData, fsSize, graphics] = await Promise.all([
+        si.cpu(),
+        si.currentLoad(),
+        si.mem(),
+        si.fsSize(),
+        si.graphics(),
+      ]);
       
-      const { stdout } = await executeCommand(`powershell -Command "${psCommand.replace(/\n/g, ' ')}"`);
+      // Populate CPU metrics
+      metrics.cpu.usage = Math.round(currentLoad.currentLoad);
+      metrics.cpu.temperature = currentLoad.currentLoadSystem || 0;
+      metrics.cpu.cores = cpuData.cores || 0;
+      metrics.cpu.speed = cpuData.speed || 0;
+      metrics.cpu.name = cpuData.brand || 'Unknown';
       
-      if (stdout && stdout.trim()) {
-        const parsed = JSON.parse(stdout.trim());
-        return { ...metrics, ...parsed };
+      // Populate memory metrics
+      metrics.memory.total = memData.total;
+      metrics.memory.available = memData.available;
+      metrics.memory.used = memData.used;
+      metrics.memory.usagePercent = Math.round((memData.used / memData.total) * 100);
+      
+      // Populate GPU metrics (if available)
+      if (graphics.controllers && graphics.controllers.length > 0) {
+        const primaryGpu = graphics.controllers[0];
+        metrics.gpu = {
+          name: primaryGpu.model || 'Unknown',
+          usage: 0, // systeminformation doesn't provide real-time GPU usage reliably
+          temperature: 0, // systeminformation doesn't provide GPU temperature reliably
+          memoryTotal: primaryGpu.vram || 0,
+          memoryUsed: 0, // systeminformation doesn't provide GPU memory usage reliably
+        };
       }
+      
+      // Populate disk metrics (use first filesystem, typically C: on Windows or / on Linux)
+      if (fsSize && fsSize.length > 0) {
+        const primaryDisk = fsSize[0];
+        metrics.disk.total = primaryDisk.size;
+        metrics.disk.free = primaryDisk.available;
+        metrics.disk.used = primaryDisk.used;
+        metrics.disk.usagePercent = Math.round(primaryDisk.use);
+      }
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error(`Failed to get system metrics: ${errorMessage}`);
@@ -153,50 +128,23 @@ export class PerformanceOptimizer {
    * Get list of high CPU/memory usage processes
    */
   async getResourceHungryProcesses(): Promise<{ name: string; cpu: number; memory: number; pid: number }[]> {
-    if (!isWindows()) {
-      try {
-        const { stdout } = await executeCommand('ps aux --sort=-%cpu | head -11');
-        const lines = stdout.split('\n').slice(1); // Skip header
-        return lines.filter(Boolean).map(line => {
-          const parts = line.split(/\s+/);
-          return {
-            name: parts[10] || 'Unknown',
-            cpu: parseFloat(parts[2]) || 0,
-            memory: parseFloat(parts[3]) || 0,
-            pid: parseInt(parts[1]) || 0,
-          };
-        }).slice(0, 10);
-      } catch {
-        return [];
-      }
-    }
-    
     try {
-      const psCommand = `
-        Get-Process | 
-        Sort-Object CPU -Descending | 
-        Select-Object -First 10 ProcessName, CPU, 
-          @{Name='Memory';Expression={[math]::Round($_.WorkingSet64 / 1MB, 2)}}, 
-          Id |
-        ForEach-Object {
-          @{
-            name = $_.ProcessName
-            cpu = if ($_.CPU) { [math]::Round($_.CPU, 2) } else { 0 }
-            memory = $_.Memory
-            pid = $_.Id
-          }
-        } | ConvertTo-Json -Compress
-      `;
+      const processData = await si.processes();
       
-      const { stdout } = await executeCommand(`powershell -Command "${psCommand.replace(/\n/g, ' ')}"`);
+      // Sort by CPU usage and take top 10
+      const sortedProcesses = processData.list
+        .sort((a, b) => (b.cpu || 0) - (a.cpu || 0))
+        .slice(0, 10);
       
-      if (stdout && stdout.trim() !== '' && stdout.trim() !== 'null') {
-        const parsed = JSON.parse(stdout);
-        return Array.isArray(parsed) ? parsed : [parsed];
-      }
-      
-      return [];
-    } catch {
+      return sortedProcesses.map(proc => ({
+        name: proc.name || 'Unknown',
+        cpu: proc.cpu || 0,
+        memory: proc.memRss ? Math.round(proc.memRss / 1024) : 0, // memRss is in KB, convert to MB
+        pid: proc.pid || 0,
+      }));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error(`Failed to get resource-hungry processes: ${errorMessage}`);
       return [];
     }
   }

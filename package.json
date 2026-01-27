@@ -34,12 +34,14 @@
   },
   "devDependencies": {
     "@types/node": "^25.0.9",
+    "@types/systeminformation": "^3.23.1",
     "electron": "^40.0.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "commander": "^14.0.2",
     "dotenv": "^17.2.3",
+    "systeminformation": "^5.30.6",
     "winston": "^3.19.0"
   }
 }
