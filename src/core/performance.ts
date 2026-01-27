@@ -74,17 +74,18 @@ export class PerformanceOptimizer {
     
     try {
       // Get CPU information
-      const [cpuData, currentLoad, memData, fsSize, graphics] = await Promise.all([
+      const [cpuData, currentLoad, memData, fsSize, graphics, cpuTemp] = await Promise.all([
         si.cpu(),
         si.currentLoad(),
         si.mem(),
         si.fsSize(),
         si.graphics(),
+        si.cpuTemperature(),
       ]);
       
       // Populate CPU metrics
       metrics.cpu.usage = Math.round(currentLoad.currentLoad);
-      metrics.cpu.temperature = currentLoad.currentLoadSystem || 0;
+      metrics.cpu.temperature = cpuTemp.main || 0; // Use main CPU temperature, fallback to 0 if not available
       metrics.cpu.cores = cpuData.cores || 0;
       metrics.cpu.speed = cpuData.speed || 0;
       metrics.cpu.name = cpuData.brand || 'Unknown';
@@ -139,7 +140,7 @@ export class PerformanceOptimizer {
       return sortedProcesses.map(proc => ({
         name: proc.name || 'Unknown',
         cpu: proc.cpu || 0,
-        memory: proc.memRss ? Math.round(proc.memRss / 1024) : 0, // memRss is in KB, convert to MB
+        memory: proc.memRss ? Math.round(proc.memRss / 1024) : 0, // memRss is in KB on Linux/macOS (from ps command), convert to MB
         pid: proc.pid || 0,
       }));
     } catch (error) {
