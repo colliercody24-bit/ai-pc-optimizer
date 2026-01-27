@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <title>AI PC Optimizer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0f0f1a;
+      --bg-secondary: #1a1a2e;
+      --bg-card: #16213e;
+      --accent-primary: #0f3460;
+      --accent-highlight: #e94560;
+      --accent-success: #00d9a5;
+      --accent-warning: #ffc107;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --border-color: #2a2a4a;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: var(--bg-secondary);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      padding: 10px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-highlight), var(--accent-primary));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .nav-menu {
+      list-style: none;
+      flex: 1;
+    }
+
+    .nav-item {
+      margin-bottom: 8px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      background: var(--accent-primary);
+      color: var(--text-primary);
+    }
+
+    .nav-link.active {
+      background: var(--accent-highlight);
+      color: var(--text-primary);
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* Score Circle */
+    .score-container {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .score-circle {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--accent-success) calc(var(--score) * 1%),
+        var(--bg-secondary) 0
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .score-circle::before {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: var(--bg-card);
+      border-radius: 50%;
+    }
+
+    .score-value {
+      position: relative;
+      z-index: 1;
+      font-size: 48px;
+      font-weight: 700;
+    }
+
+    .score-info {
+      flex: 1;
+    }
+
+    .score-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .score-summary {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-card {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .metric-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .metric-bar {
+      height: 6px;
+      background: var(--bg-primary);
+      border-radius: 3px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      background: var(--accent-success);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .metric-bar-fill.warning {
+      background: var(--accent-warning);
+    }
+
+    .metric-bar-fill.danger {
+      background: var(--accent-highlight);
+    }
+
+    /* Recommendations */
+    .recommendations-list {
+      list-style: none;
+    }
+
+    .recommendation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .recommendation-priority {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .recommendation-priority.high {
+      background: var(--accent-highlight);
+    }
+
+    .recommendation-priority.medium {
+      background: var(--accent-warning);
+    }
+
+    .recommendation-priority.low {
+      background: var(--accent-success);
+    }
+
+    .recommendation-content {
+      flex: 1;
+    }
+
+    .recommendation-action {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .recommendation-reason {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .recommendation-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: var(--accent-primary);
+      color: var(--text-primary);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent-highlight);
+      color: var(--text-primary);
+    }
+
+    .btn-primary:hover {
+      background: #ff5a7a;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--accent-primary);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: #1a4a8a;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table th {
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .data-table tr:hover {
+      background: var(--bg-secondary);
+    }
+
+    /* Progress */
+    .progress-container {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--bg-secondary);
+      border-top-color: var(--accent-highlight);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Power Plan Buttons */
+    .power-plans {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .power-plan-btn {
+      flex: 1;
+      padding: 16px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .power-plan-btn:hover {
+      border-color: var(--accent-highlight);
+    }
+
+    .power-plan-btn.active {
+      border-color: var(--accent-success);
+      background: rgba(0, 217, 165, 0.1);
+    }
+
+    .power-plan-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .power-plan-name {
+      font-weight: 500;
+    }
+
+    /* Cleanup Items */
+    .cleanup-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .cleanup-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .cleanup-icon {
+      font-size: 24px;
+    }
+
+    .cleanup-name {
+      font-weight: 500;
+    }
+
+    .cleanup-details {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .cleanup-size {
+      font-weight: 600;
+      color: var(--accent-warning);
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px 24px;
+      margin-top: 10px;
+      animation: slideIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--accent-success);
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--accent-highlight);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Status indicators */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-badge.success {
+      background: rgba(0, 217, 165, 0.2);
+      color: var(--accent-success);
+    }
+
+    .status-badge.warning {
+      background: rgba(255, 193, 7, 0.2);
+      color: var(--accent-warning);
+    }
+
+    .status-badge.error {
+      background: rgba(233, 69, 96, 0.2);
+      color: var(--accent-highlight);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon">🚀</div>
+        <span class="logo-text">AI PC Optimizer</span>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a class="nav-link active" data-page="dashboard">
+            <span class="nav-icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-page="updates">
+            <span class="nav-icon">🔄</span>
+            <span>Updates</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-page="drivers">
+            <span class="nav-icon">🎮</span>
+            <span>Drivers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-page="performance">
+            <span class="nav-icon">⚡</span>
+            <span>Performance</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-page="cleanup">
+            <span class="nav-icon">🧹</span>
+            <span>Cleanup</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Dashboard Page -->
+      <div class="page active" id="dashboard">
+        <div class="page-header">
+          <h1 class="page-title">System Dashboard</h1>
+          <button class="btn btn-primary" id="btn-analyze">
+            <span>🔍</span> Analyze System
+          </button>
+        </div>
+
+        <div class="card" id="score-card">
+          <div class="card-header">
+            <h2 class="card-title">System Health Score</h2>
+            <button class="btn btn-secondary" id="btn-optimize">
+              <span>🚀</span> Run Optimization
+            </button>
+          </div>
+          <div class="score-container">
+            <div class="score-circle" style="--score: 0">
+              <span class="score-value" id="health-score">--</span>
+            </div>
+            <div class="score-info">
+              <p class="score-label">OVERALL STATUS</p>
+              <p class="score-summary" id="health-summary">Click "Analyze System" to check your PC health</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">System Metrics</h2>
+          <div class="metrics-grid" id="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon">💻</div>
+              <div class="metric-value" id="cpu-usage">--%</div>
+              <div class="metric-label">CPU Usage</div>
+              <div class="metric-bar">
+                <div class="metric-bar-fill" id="cpu-bar" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-icon">🧠</div>
+              <div class="metric-value" id="memory-usage">--%</div>
+              <div class="metric-label">Memory Usage</div>
+              <div class="metric-bar">
+                <div class="metric-bar-fill" id="memory-bar" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-icon">💾</div>
+              <div class="metric-value" id="disk-usage">--%</div>
+              <div class="metric-label">Disk Usage</div>
+              <div class="metric-bar">
+                <div class="metric-bar-fill" id="disk-bar" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-icon">🎮</div>
+              <div class="metric-value" id="gpu-name">--</div>
+              <div class="metric-label">GPU</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">AI Recommendations</h2>
+          <ul class="recommendations-list" id="recommendations-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">🤖</div>
+              <p>Run system analysis to get AI-powered recommendations</p>
+            </div>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Updates Page -->
+      <div class="page" id="updates">
+        <div class="page-header">
+          <h1 class="page-title">Windows Updates</h1>
+          <div>
+            <button class="btn btn-secondary" id="btn-check-updates">
+              <span>🔍</span> Check for Updates
+            </button>
+            <button class="btn btn-primary" id="btn-install-updates" disabled>
+              <span>📥</span> Install Updates
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">Available Updates</h2>
+          <div id="updates-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">🔄</div>
+              <p>Click "Check for Updates" to scan for available updates</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drivers Page -->
+      <div class="page" id="drivers">
+        <div class="page-header">
+          <h1 class="page-title">Driver Management</h1>
+          <div>
+            <button class="btn btn-secondary" id="btn-scan-drivers">
+              <span>🔍</span> Scan Drivers
+            </button>
+            <button class="btn btn-primary" id="btn-check-driver-updates">
+              <span>🔄</span> Check for Updates
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">GPU Information</h2>
+          <div id="gpu-info">
+            <div class="empty-state">
+              <div class="empty-state-icon">🎮</div>
+              <p>Click "Scan Drivers" to view GPU information</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">Installed Drivers</h2>
+          <div id="drivers-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <p>Click "Scan Drivers" to view installed drivers</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Page -->
+      <div class="page" id="performance">
+        <div class="page-header">
+          <h1 class="page-title">Performance Optimization</h1>
+          <button class="btn btn-primary" id="btn-optimize-performance">
+            <span>⚡</span> Optimize Now
+          </button>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">Power Plan</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 16px;">Select a power plan to balance performance and energy consumption</p>
+          <div class="power-plans">
+            <button class="power-plan-btn" data-plan="power-saver">
+              <div class="power-plan-icon">🔋</div>
+              <div class="power-plan-name">Power Saver</div>
+            </button>
+            <button class="power-plan-btn active" data-plan="balanced">
+              <div class="power-plan-icon">⚖️</div>
+              <div class="power-plan-name">Balanced</div>
+            </button>
+            <button class="power-plan-btn" data-plan="high-performance">
+              <div class="power-plan-icon">🚀</div>
+              <div class="power-plan-name">High Performance</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">Resource-Hungry Processes</h2>
+          <button class="btn btn-secondary" id="btn-refresh-processes" style="margin-bottom: 16px;">
+            <span>🔄</span> Refresh
+          </button>
+          <div id="processes-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">📊</div>
+              <p>Click "Refresh" to view resource usage by processes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cleanup Page -->
+      <div class="page" id="cleanup">
+        <div class="page-header">
+          <h1 class="page-title">Disk Cleanup</h1>
+          <div>
+            <button class="btn btn-secondary" id="btn-scan-cleanup">
+              <span>🔍</span> Scan
+            </button>
+            <button class="btn btn-primary" id="btn-run-cleanup" disabled>
+              <span>🧹</span> Clean Now
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Cleanup Targets</h2>
+            <span class="status-badge" id="cleanup-total">0 MB to clean</span>
+          </div>
+          <div id="cleanup-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">🧹</div>
+              <p>Click "Scan" to find files that can be cleaned</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 20px;">Quick Actions</h2>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" id="btn-empty-recycle">
+              <span>🗑️</span> Empty Recycle Bin
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // Navigation
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        
+        link.classList.add('active');
+        const pageId = link.dataset.page;
+        document.getElementById(pageId).classList.add('active');
+      });
+    });
+
+    // Toast notifications
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      const icon = document.createElement('span');
+      icon.textContent = type === 'success' ? '✅' : '❌';
+      toast.appendChild(icon);
+      toast.appendChild(document.createTextNode(' ' + message));
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.remove(), 5000);
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Format bytes helper
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Get bar class based on percentage
+    function getBarClass(percent) {
+      if (percent >= 85) return 'danger';
+      if (percent >= 70) return 'warning';
+      return '';
+    }
+
+    // Update metrics display
+    function updateMetrics(metrics) {
+      // CPU
+      document.getElementById('cpu-usage').textContent = `${metrics.cpu.usage}%`;
+      document.getElementById('cpu-bar').style.width = `${metrics.cpu.usage}%`;
+      document.getElementById('cpu-bar').className = `metric-bar-fill ${getBarClass(metrics.cpu.usage)}`;
+      
+      // Memory
+      document.getElementById('memory-usage').textContent = `${metrics.memory.usagePercent}%`;
+      document.getElementById('memory-bar').style.width = `${metrics.memory.usagePercent}%`;
+      document.getElementById('memory-bar').className = `metric-bar-fill ${getBarClass(metrics.memory.usagePercent)}`;
+      
+      // Disk
+      document.getElementById('disk-usage').textContent = `${metrics.disk.usagePercent}%`;
+      document.getElementById('disk-bar').style.width = `${metrics.disk.usagePercent}%`;
+      document.getElementById('disk-bar').className = `metric-bar-fill ${getBarClass(metrics.disk.usagePercent)}`;
+      
+      // GPU
+      if (metrics.gpu) {
+        document.getElementById('gpu-name').textContent = metrics.gpu.name.substring(0, 20);
+      }
+    }
+
+    // Update health score
+    function updateHealthScore(score, summary) {
+      document.getElementById('health-score').textContent = score;
+      document.getElementById('health-summary').textContent = summary;
+      document.querySelector('.score-circle').style.setProperty('--score', score);
+    }
+
+    // Update recommendations
+    function updateRecommendations(recommendations) {
+      const list = document.getElementById('recommendations-list');
+      
+      if (recommendations.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">✅</div>
+            <p>Great! No issues detected. Your system is running optimally.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      list.innerHTML = recommendations.map(rec => `
+        <li class="recommendation-item">
+          <div class="recommendation-priority ${escapeHtml(rec.priority)}"></div>
+          <div class="recommendation-content">
+            <div class="recommendation-action">${escapeHtml(rec.action)}</div>
+            <div class="recommendation-reason">${escapeHtml(rec.reason)}</div>
+          </div>
+          ${rec.autoFix ? '<span class="recommendation-badge">Auto-fix available</span>' : ''}
+        </li>
+      `).join('');
+    }
+
+    // Dashboard - Analyze System
+    document.getElementById('btn-analyze').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-analyze');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Analyzing...';
+      
+      try {
+        const result = await window.electronAPI.analyzeSystem();
+        
+        if (result.success) {
+          updateHealthScore(result.data.overallScore, result.data.summary);
+          updateMetrics(result.data.metrics);
+          updateRecommendations(result.data.recommendations);
+          showToast('System analysis complete');
+        } else {
+          showToast('Analysis failed: ' + result.error, 'error');
+        }
+      } catch (err) {
+        showToast('Analysis failed', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔍</span> Analyze System';
+    });
+
+    // Dashboard - Run Optimization
+    document.getElementById('btn-optimize').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-optimize');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Optimizing...';
+      
+      try {
+        const result = await window.electronAPI.runOptimization();
+        
+        if (result.success) {
+          updateHealthScore(result.data.finalScore, 'Optimization complete!');
+          showToast(`Optimization complete! Score improved to ${result.data.finalScore}/100`);
+          
+          // Re-analyze to refresh data
+          const analysis = await window.electronAPI.analyzeSystem();
+          if (analysis.success) {
+            updateMetrics(analysis.data.metrics);
+            updateRecommendations(analysis.data.recommendations);
+          }
+        } else {
+          showToast('Optimization failed: ' + result.error, 'error');
+        }
+      } catch (err) {
+        showToast('Optimization failed', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🚀</span> Run Optimization';
+    });
+
+    // Updates - Check for Updates
+    document.getElementById('btn-check-updates').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-check-updates');
+      const installBtn = document.getElementById('btn-install-updates');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Checking...';
+      
+      try {
+        const result = await window.electronAPI.checkUpdates();
+        const container = document.getElementById('updates-list');
+        
+        if (result.success) {
+          if (result.data.updatesAvailable > 0) {
+            container.innerHTML = `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Update Name</th>
+                    <th>KB</th>
+                    <th>Size</th>
+                    <th>Category</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${result.data.updates.map(u => `
+                    <tr>
+                      <td>${u.name}</td>
+                      <td>${u.kb || '-'}</td>
+                      <td>${u.size ? u.size + ' MB' : '-'}</td>
+                      <td>${u.category || '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+            installBtn.disabled = false;
+            showToast(`Found ${result.data.updatesAvailable} updates available`);
+          } else {
+            container.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <p>Your system is up to date!</p>
+              </div>
+            `;
+            installBtn.disabled = true;
+            showToast('Your system is up to date!');
+          }
+        } else {
+          showToast('Failed to check updates: ' + result.error, 'error');
+        }
+      } catch (err) {
+        showToast('Failed to check updates', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔍</span> Check for Updates';
+    });
+
+    // Updates - Install Updates
+    document.getElementById('btn-install-updates').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-install-updates');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Installing...';
+      
+      try {
+        const result = await window.electronAPI.installUpdates();
+        
+        if (result.success) {
+          showToast(`Installed ${result.data.updatesInstalled} updates`);
+          if (result.data.requiresReboot) {
+            showToast('A system restart is required to complete the installation', 'warning');
+          }
+        } else {
+          showToast('Installation failed: ' + result.error, 'error');
+        }
+      } catch (err) {
+        showToast('Installation failed', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>📥</span> Install Updates';
+    });
+
+    // Drivers - Scan Drivers
+    document.getElementById('btn-scan-drivers').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-scan-drivers');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Scanning...';
+      
+      try {
+        // Get GPU info
+        const gpuResult = await window.electronAPI.getGpuInfo();
+        const gpuContainer = document.getElementById('gpu-info');
+        
+        if (gpuResult.success && gpuResult.data.length > 0) {
+          gpuContainer.innerHTML = gpuResult.data.map(gpu => `
+            <div class="cleanup-item">
+              <div class="cleanup-info">
+                <div class="cleanup-icon">🎮</div>
+                <div>
+                  <div class="cleanup-name">${gpu.deviceName}</div>
+                  <div class="cleanup-details">
+                    ${gpu.manufacturer || ''} | Driver: ${gpu.driverVersion || 'Unknown'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Get all drivers
+        const driversResult = await window.electronAPI.scanDrivers();
+        const driversContainer = document.getElementById('drivers-list');
+        
+        if (driversResult.success && driversResult.data.length > 0) {
+          driversContainer.innerHTML = `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Device</th>
+                  <th>Manufacturer</th>
+                  <th>Version</th>
+                  <th>Class</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${driversResult.data.slice(0, 20).map(d => `
+                  <tr>
+                    <td>${d.deviceName?.substring(0, 40) || '-'}</td>
+                    <td>${d.manufacturer || '-'}</td>
+                    <td>${d.driverVersion || '-'}</td>
+                    <td>${d.deviceClass || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            ${driversResult.data.length > 20 ? `<p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">...and ${driversResult.data.length - 20} more drivers</p>` : ''}
+          `;
+          showToast(`Found ${driversResult.data.length} drivers`);
+        }
+      } catch (err) {
+        showToast('Failed to scan drivers', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔍</span> Scan Drivers';
+    });
+
+    // Performance - Power Plans
+    document.querySelectorAll('.power-plan-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const plan = btn.dataset.plan;
+        
+        document.querySelectorAll('.power-plan-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        try {
+          const result = await window.electronAPI.setPowerPlan(plan);
+          if (result.success) {
+            showToast(`Power plan set to ${plan}`);
+          } else {
+            showToast('Failed to set power plan: ' + result.error, 'error');
+          }
+        } catch (err) {
+          showToast('Failed to set power plan', 'error');
+        }
+      });
+    });
+
+    // Performance - Optimize
+    document.getElementById('btn-optimize-performance').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-optimize-performance');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Optimizing...';
+      
+      try {
+        const result = await window.electronAPI.optimizePerformance();
+        
+        if (result.success) {
+          const successCount = result.data.filter(r => r.success).length;
+          showToast(`Optimization complete! ${successCount}/${result.data.length} actions successful`);
+        } else {
+          showToast('Optimization failed: ' + result.error, 'error');
+        }
+      } catch (err) {
+        showToast('Optimization failed', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>⚡</span> Optimize Now';
+    });
+
+    // Performance - Refresh Processes
+    document.getElementById('btn-refresh-processes').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-refresh-processes');
+      btn.disabled = true;
+      
+      try {
+        const result = await window.electronAPI.getProcesses();
+        const container = document.getElementById('processes-list');
+        
+        if (result.success) {
+          container.innerHTML = `
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">💡 ${result.data.recommendation}</p>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Process</th>
+                  <th>CPU</th>
+                  <th>Memory</th>
+                  <th>PID</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${result.data.processes.map(p => `
+                  <tr>
+                    <td>${p.name}</td>
+                    <td>${p.cpu.toFixed(1)}%</td>
+                    <td>${p.memory.toFixed(1)} MB</td>
+                    <td>${p.pid}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      } catch (err) {
+        showToast('Failed to get processes', 'error');
+      }
+      
+      btn.disabled = false;
+    });
+
+    // Cleanup - Scan
+    document.getElementById('btn-scan-cleanup').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-scan-cleanup');
+      const cleanBtn = document.getElementById('btn-run-cleanup');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Scanning...';
+      
+      try {
+        const result = await window.electronAPI.scanCleanup();
+        const container = document.getElementById('cleanup-list');
+        
+        if (result.success) {
+          const totalSize = result.data.reduce((sum, t) => sum + t.size, 0);
+          document.getElementById('cleanup-total').textContent = formatBytes(totalSize) + ' to clean';
+          
+          const targets = result.data.filter(t => t.size > 0);
+          
+          if (targets.length > 0) {
+            container.innerHTML = targets.map(t => `
+              <div class="cleanup-item">
+                <div class="cleanup-info">
+                  <div class="cleanup-icon">${getCleanupIcon(t.type)}</div>
+                  <div>
+                    <div class="cleanup-name">${t.description}</div>
+                    <div class="cleanup-details">${t.fileCount} files</div>
+                  </div>
+                </div>
+                <span class="cleanup-size">${formatBytes(t.size)}</span>
+              </div>
+            `).join('');
+            cleanBtn.disabled = false;
+            showToast(`Found ${formatBytes(totalSize)} to clean`);
+          } else {
+            container.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <p>Your system is clean! No unnecessary files found.</p>
+              </div>
+            `;
+          }
+        }
+      } catch (err) {
+        showToast('Failed to scan', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔍</span> Scan';
+    });
+
+    function getCleanupIcon(type) {
+      const icons = {
+        temp: '📁',
+        cache: '💾',
+        browser: '🌐',
+        logs: '📝',
+        downloads: '📥',
+        custom: '📂',
+      };
+      return icons[type] || '📁';
+    }
+
+    // Cleanup - Run Cleanup
+    document.getElementById('btn-run-cleanup').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-run-cleanup');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Cleaning...';
+      
+      try {
+        const result = await window.electronAPI.runCleanup();
+        
+        if (result.success) {
+          showToast(`Cleanup complete! Deleted ${result.data.filesDeleted} files, freed ${formatBytes(result.data.spaceFreed)}`);
+          document.getElementById('cleanup-total').textContent = '0 MB to clean';
+          document.getElementById('cleanup-list').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">✅</div>
+              <p>Cleanup complete!</p>
+            </div>
+          `;
+        } else {
+          showToast('Cleanup failed: ' + result.error, 'error');
+        }
+      } catch (err) {
+        showToast('Cleanup failed', 'error');
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🧹</span> Clean Now';
+    });
+
+    // Cleanup - Empty Recycle Bin
+    document.getElementById('btn-empty-recycle').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-empty-recycle');
+      btn.disabled = true;
+      
+      try {
+        const result = await window.electronAPI.emptyRecycleBin();
+        
+        if (result.success) {
+          showToast(`Recycle bin emptied! ${result.data.filesDeleted} items removed`);
+        } else {
+          showToast('Failed to empty recycle bin', 'error');
+        }
+      } catch (err) {
+        showToast('Failed to empty recycle bin', 'error');
+      }
+      
+      btn.disabled = false;
+    });
+
+    // Initial metrics load
+    window.electronAPI.getSystemMetrics().then(result => {
+      if (result.success) {
+        updateMetrics(result.data);
+      }
+    });
+  </script>
+</body>
+</html>
